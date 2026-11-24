@@ -25,12 +25,16 @@ def main() -> None:
         raise ValueError(f"reply is {len(text)} characters, must be 1-160")
     if text != text.strip() or "\n" in text:
         raise ValueError("reply must be one clean line")
-    os.makedirs("/output", exist_ok=True)
-    with open("/output/entry.txt", "w", encoding="utf-8") as f:
+    # The harness runs the program with MAKEFUN_OUTPUT_DIR set; /output
+    # is the documented default, so honour the variable when present.
+    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
+    os.makedirs(out_dir, exist_ok=True)
+    entry_path = os.path.join(out_dir, "entry.txt")
+    with open(entry_path, "w", encoding="utf-8") as f:
         f.write(text)
     # Read it back so a truncated or mangled write fails loudly here,
     # in the sandbox, instead of silently reaching the gate.
-    with open("/output/entry.txt", "r", encoding="utf-8") as f:
+    with open(entry_path, "r", encoding="utf-8") as f:
         written = f.read()
     if written != text:
         raise ValueError("entry.txt does not match the reply")
